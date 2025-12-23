@@ -1,0 +1,157 @@
+/* BrushSizeControl - Positioned inside canvas area */
+
+.container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border-radius: 10px;
+    padding: 8px 14px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e5e7eb;
+}
+
+/* Size info section */
+.sizeSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 50px;
+}
+
+.sizeHeader {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.sizeLabel {
+    font-size: 11px;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.sizeValue {
+    font-size: 13px;
+    color: #2757d3;
+    font-weight: 700;
+}
+
+.thicknessLabel {
+    font-size: 11px;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+/* Dots section */
+.dotsSection {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toolIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    opacity: 0.7;
+}
+
+.toolIcon img {
+    width: 18px;
+    height: 18px;
+}
+
+.dotsContainer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: #f3f4f6;
+    border-radius: 8px;
+}
+
+.dot {
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    flex-shrink: 0;
+}
+
+.dot:hover {
+    transform: scale(1.25);
+}
+
+.dot.active {
+    box-shadow: 0 0 0 2px white, 0 0 0 4px #2757d3;
+    transform: scale(1.1);
+}
+
+.plusIcon {
+    font-size: 14px;
+    color: #9ca3af;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+/* Divider */
+.divider {
+    width: 1px;
+    height: 32px;
+    background: #e5e7eb;
+}
+
+/* Color section */
+.colorSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+
+.colorSection:hover {
+    background: #f3f4f6;
+}
+
+.colorSwatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 2px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.colorLabel {
+    font-size: 10px;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+/* Placeholder for non-segment tools */
+.colorPlaceholder {
+    width: 44px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 6px 10px;
+        gap: 8px;
+    }
+
+    .sizeSection {
+        min-width: 40px;
+    }
+
+    .dotsContainer {
+        gap: 4px;
+        padding: 4px 8px;
+    }
+}

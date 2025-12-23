@@ -1,0 +1,175 @@
+.container {
+  display: grid;
+  grid-template-columns: var(--toolbar-width) 1fr var(--panel-width);
+  grid-template-rows: 1fr auto;
+  min-height: 100vh;
+  max-height: 100vh;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+.loading {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+}
+
+.main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Floating toolbar in top-left */
+.viewerToolbar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 20;
+}
+
+.canvasArea {
+  flex: 1;
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  justify-content: center;
+  align-items: stretch;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.canvasArea.splitMode {
+  flex-direction: row;
+}
+
+.canvasArea.curtainMode {
+  position: relative;
+  align-items: center;
+  justify-content: center;
+}
+
+.canvasWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* In split mode, flex grows */
+.splitMode .canvasWrapper {
+  flex: 1;
+}
+
+/* In curtain mode, center both absolutely positioned canvases */
+.curtainMode .canvasWrapper {
+  flex: none;
+  /* Responsive sizing with constraints */
+  width: 55%;
+  max-width: min(55%, 900px);
+  /* Cap at 900px for very large screens */
+  height: auto;
+  aspect-ratio: 512 / 384;
+}
+
+.rightPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--bg-primary);
+  border-left: 1px solid var(--border-color);
+  overflow-y: auto;
+  max-height: 100vh;
+}
+
+.statusBar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-color);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.connectionStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--accent-danger);
+  font-weight: 500;
+}
+
+.connectionStatus.connected {
+  color: var(--accent-success);
+}
+
+.statusMessage {
+  flex: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+  .container {
+    grid-template-columns: var(--toolbar-width) 1fr var(--panel-width);
+  }
+}
+
+@media (max-width: 1200px) {
+  .canvasArea {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 1024px) {
+  .container {
+    grid-template-columns: var(--toolbar-width) 1fr 220px;
+  }
+}
+
+@media (max-width: 900px) {
+  .container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto auto;
+  }
+
+  .rightPanel {
+    flex-direction: row;
+    flex-wrap: wrap;
+    max-height: none;
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
+  }
+
+  .rightPanel>* {
+    flex: 1 1 280px;
+    min-width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .canvasArea {
+    padding: var(--spacing-sm);
+  }
+
+  .statusBar {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+}

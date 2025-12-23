@@ -1,0 +1,37 @@
+/* CurtainDivider styles */
+
+.divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 32px;
+    margin-left: -16px;
+    z-index: 10;
+    cursor: ew-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.handle {
+    width: 28px;
+    height: 48px;
+    background: var(--accent-primary);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.divider:hover .handle,
+.divider.dragging .handle {
+    transform: scale(1.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.divider.dragging {
+    cursor: grabbing;
+}
