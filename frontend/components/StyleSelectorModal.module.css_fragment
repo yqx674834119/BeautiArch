@@ -1,0 +1,37 @@
+/* Category Switcher */
+.categorySwitcher {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-left: var(--spacing-lg);
+}
+
+.categoryBtn {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.categoryBtn:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+.categoryBtn.active {
+    background: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.categoryBtn.active.interior {
+    background: var(--accent-purple); /* specific color for Interior if needed, or keeping unified */
+    border-color: var(--accent-purple);
+}

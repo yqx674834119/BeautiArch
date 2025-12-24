@@ -32,6 +32,29 @@ export default function StyleSelectorModal({
     const tabsContainerRef = useRef<HTMLDivElement>(null);
     const [showRightArrow, setShowRightArrow] = useState(false);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
+    const [category, setCategory] = useState<'ext' | 'int'>(types[selectedType]?.category || 'ext');
+
+    // Filter types based on category
+    // Note: TypeInfo contains the global 'index', so we can use it to set the correct selectedType
+    const filteredTypes = types.filter(t => t.category === category);
+
+    const handleCategoryChange = (newCategory: 'ext' | 'int') => {
+        setCategory(newCategory);
+
+        // When switching category, select the first type of the new category
+        const firstType = types.find(t => t.category === newCategory);
+        if (firstType) {
+            onTypeChange(firstType.index);
+            onStyleChange(0);
+        }
+    };
+
+    // Update category if the selected type changes externally (though modal usually restricts this)
+    useEffect(() => {
+        if (types[selectedType]) {
+            setCategory(types[selectedType].category);
+        }
+    }, [selectedType, types]);
 
     // Check if tabs overflow and need navigation arrows
     useEffect(() => {
@@ -43,10 +66,14 @@ export default function StyleSelectorModal({
                 setShowLeftArrow(container.scrollLeft > 10);
             }
         };
-        checkOverflow();
+        // Small timeout to ensure DOM is updated after type filter change
+        const timer = setTimeout(checkOverflow, 100);
         window.addEventListener('resize', checkOverflow);
-        return () => window.removeEventListener('resize', checkOverflow);
-    }, [types]);
+        return () => {
+            window.removeEventListener('resize', checkOverflow);
+            clearTimeout(timer);
+        };
+    }, [filteredTypes]);
 
     const handleScroll = () => {
         const container = tabsContainerRef.current;
@@ -85,7 +112,26 @@ export default function StyleSelectorModal({
             <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
                 {/* Header */}
                 <div className={styles.header}>
-                    <h2 className={styles.title}>Select Style</h2>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <h2 className={styles.title}>Select Style</h2>
+
+                        {/* Category Switcher */}
+                        <div className={styles.categorySwitcher}>
+                            <button
+                                className={`${styles.categoryBtn} ${category === 'ext' ? styles.active : ''}`}
+                                onClick={() => handleCategoryChange('ext')}
+                            >
+                                Exterior
+                            </button>
+                            <button
+                                className={`${styles.categoryBtn} ${category === 'int' ? `${styles.active} ${styles.interior}` : ''}`}
+                                onClick={() => handleCategoryChange('int')}
+                            >
+                                Interior
+                            </button>
+                        </div>
+                    </div>
+
                     <button className={styles.closeButton} onClick={onClose}>
                         ×
                     </button>
@@ -107,11 +153,11 @@ export default function StyleSelectorModal({
                         onScroll={handleScroll}
                     >
                         <span className={styles.typeLabel}>Type</span>
-                        {types.map((type, index) => (
+                        {filteredTypes.map((type) => (
                             <button
                                 key={type.index}
-                                className={`${styles.typeTab} ${index === selectedType ? styles.typeTabActive : ''}`}
-                                onClick={() => handleTypeSelect(index)}
+                                className={`${styles.typeTab} ${type.index === selectedType ? styles.typeTabActive : ''}`}
+                                onClick={() => handleTypeSelect(type.index)}
                             >
                                 {type.name}
                             </button>

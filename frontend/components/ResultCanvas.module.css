@@ -1,7 +1,7 @@
 .canvasWrapper {
     position: relative;
     background: #b4b4b4;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
     overflow: hidden;
     /* Scale to fill container */

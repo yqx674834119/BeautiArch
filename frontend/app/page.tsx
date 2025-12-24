@@ -125,13 +125,17 @@ export default function Home() {
           }));
         }
 
-        setIsConnected(true);
         setStatusMessage(`Loaded ${loadedTypes.length} types`);
       })
       .catch((error) => {
         console.error('Failed to load types:', error);
         setStatusMessage('Failed to load types');
       });
+
+    // Check backend health
+    api.checkHealth()
+      .then(() => setIsConnected(true))
+      .catch(() => setIsConnected(false));
   }, [isMounted]);
 
   // Handle type change

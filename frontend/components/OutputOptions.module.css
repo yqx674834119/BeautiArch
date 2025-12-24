@@ -71,17 +71,18 @@
     align-items: center;
     gap: var(--spacing-md);
     padding: var(--spacing-md);
-    background: var(--bg-secondary);
-    border-radius: var(--radius-md);
+    background: white;
+    border-radius: var(--radius-xl);
     border: 1px solid var(--border-color);
     cursor: pointer;
     transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
 }
 
 .stylePreviewCard:hover {
     border-color: var(--accent-primary);
-    background: var(--bg-tertiary);
-    box-shadow: 0 2px 8px rgba(39, 87, 211, 0.15);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
 }
 
 .previewImageWrapper {
@@ -526,8 +527,11 @@ input:checked+.slider:before {
 }
 
 .button.primary:hover:not(:disabled) {
-    background: var(--accent-secondary);
-    border-color: var(--accent-secondary);
+    background: #1d4ed8;
+    /* Slate 800 */
+    border-color: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 .spinner {
