@@ -15,6 +15,16 @@ import cv2
 import numpy as np
 from PIL import Image
 
+# 导入模型配置
+from model_config import (
+    BASE_MODELS, CONTROLNET_MODELS, IP_ADAPTER_MODELS, 
+    ACCELERATION_LORAS, SEGMENTATION_MODELS,
+    get_base_model_id, get_base_model_has_fp16,
+    get_controlnet_id, get_ip_adapter_config, get_acceleration_config,
+    get_upscale_controlnet_id,
+    DEFAULT_BASE_MODEL, ACTIVE_CONTROLNETS, INFERENCE_DEFAULTS
+)
+
 cache_path = path.join(path.dirname(path.abspath(__file__)), "models")
 
 os.environ["TRANSFORMERS_CACHE"] = cache_path
@@ -22,8 +32,10 @@ os.environ["HF_HUB_CACHE"] = cache_path
 os.environ["HF_HOME"] = cache_path
 is_mac = platform == "darwin"
 
-model_list = ['Dreamshaper8']
-model_ids = ["Lykon/dreamshaper-8"]
+# 从配置文件获取模型信息
+model_list = list(BASE_MODELS.keys())
+model_ids = [m["id"] for m in BASE_MODELS.values()]
+DEFAULT_MODEL = get_base_model_id()
 
 LINE_METHODS = ['Sobel Custom', 'Canny', 'Canny + L2', 'Canny + BIL', 'Canny + Blur', 'RF Custom']
 
@@ -398,7 +410,7 @@ class timer:
         print(f"{self.method} took {str(round(end - self.start, 2))}s")
 
 
-def load_models_img2img(model_id="Lykon/dreamshaper-8", use_ip=True):
+def load_models_img2img(model_id=DEFAULT_MODEL, use_ip=True):
     from diffusers import ControlNetModel, LCMScheduler, StableDiffusionControlNetPipeline, \
         StableDiffusionControlNetImg2ImgPipeline
     from diffusers.utils import load_image
@@ -406,10 +418,15 @@ def load_models_img2img(model_id="Lykon/dreamshaper-8", use_ip=True):
     if not is_mac:
         torch.backends.cuda.matmul.allow_tf32 = True
 
-    lcm_lora_id = "latent-consistency/lcm-lora-sdv1-5"
-    ip_adapter_name = "ip-adapter_sd15.bin"
+    # 从配置获取模型信息
+    accel_config = get_acceleration_config(hyper=False)
+    ip_config = get_ip_adapter_config()
+    
+    lcm_lora_id = accel_config["id"]
+    ip_adapter_name = ip_config["weight"]
+    
     controlnet = ControlNetModel.from_pretrained(
-        "lllyasviel/sd-controlnet-scribble", torch_dtype=torch.float16
+        get_controlnet_id("scribble"), torch_dtype=torch.float16
     )
 
     pipe = StableDiffusionControlNetImg2ImgPipeline.from_pretrained(
@@ -423,7 +440,7 @@ def load_models_img2img(model_id="Lykon/dreamshaper-8", use_ip=True):
     )
 
     if use_ip:
-        pipe.load_ip_adapter("h94/IP-Adapter", subfolder="models", weight_name=ip_adapter_name)
+        pipe.load_ip_adapter(ip_config["repo"], subfolder=ip_config["subfolder"], weight_name=ip_adapter_name)
 
     pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
     pipe.load_lora_weights(lcm_lora_id)
@@ -480,7 +497,7 @@ def load_models_img2img(model_id="Lykon/dreamshaper-8", use_ip=True):
     return infer
 
 
-def load_models(model_id="Lykon/dreamshaper-8", use_ip=True):
+def load_models(model_id=DEFAULT_MODEL, use_ip=True):
     from diffusers import ControlNetModel, LCMScheduler, StableDiffusionControlNetPipeline, \
         StableDiffusionControlNetImg2ImgPipeline
     from diffusers.utils import load_image
@@ -488,10 +505,15 @@ def load_models(model_id="Lykon/dreamshaper-8", use_ip=True):
     if not is_mac:
         torch.backends.cuda.matmul.allow_tf32 = True
 
-    lcm_lora_id = "latent-consistency/lcm-lora-sdv1-5"
-    ip_adapter_name = "ip-adapter_sd15.bin"
+    # 从配置获取模型信息
+    accel_config = get_acceleration_config(hyper=False)
+    ip_config = get_ip_adapter_config()
+    
+    lcm_lora_id = accel_config["id"]
+    ip_adapter_name = ip_config["weight"]
+    
     controlnet = ControlNetModel.from_pretrained(
-        "lllyasviel/sd-controlnet-scribble", torch_dtype=torch.float16
+        get_controlnet_id("scribble"), torch_dtype=torch.float16
     )
 
     pipe = StableDiffusionControlNetPipeline.from_pretrained(
@@ -560,18 +582,23 @@ def load_models(model_id="Lykon/dreamshaper-8", use_ip=True):
     return infer
 
 
-def load_models_multiple_cn(model_id="Lykon/dreamshaper-8", use_ip=True):
+def load_models_multiple_cn(model_id=DEFAULT_MODEL, use_ip=True):
     from diffusers import ControlNetModel, LCMScheduler, StableDiffusionControlNetPipeline
     from diffusers.utils import load_image
 
     if not is_mac:
         torch.backends.cuda.matmul.allow_tf32 = True
 
-    lcm_lora_id = "latent-consistency/lcm-lora-sdv1-5"
-    ip_adapter_name = "ip-adapter_sd15.bin"
+    # 从配置获取模型信息
+    accel_config = get_acceleration_config(hyper=False)
+    ip_config = get_ip_adapter_config()
+    
+    lcm_lora_id = accel_config["id"]
+    ip_adapter_name = ip_config["weight"]
+    
     controlnets = [
-        ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-scribble", torch_dtype=torch.float16),
-        ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-seg", torch_dtype=torch.float16)]
+        ControlNetModel.from_pretrained(get_controlnet_id("scribble"), torch_dtype=torch.float16),
+        ControlNetModel.from_pretrained(get_controlnet_id("segmentation"), torch_dtype=torch.float16)]
 
     if 'custom' in model_id:
         pipe = StableDiffusionControlNetPipeline.from_single_file(
@@ -580,7 +607,6 @@ def load_models_multiple_cn(model_id="Lykon/dreamshaper-8", use_ip=True):
             controlnet=controlnets,
             controlnet_conditioning_scale=[0.9, 0.9],
             torch_dtype=torch.float16,
-            variant="fp16",
             safety_checker=None
         )
     else:
@@ -590,12 +616,11 @@ def load_models_multiple_cn(model_id="Lykon/dreamshaper-8", use_ip=True):
             controlnet=controlnets,
             controlnet_conditioning_scale=[0.9, 0.9],
             torch_dtype=torch.float16,
-            variant="fp16",
             safety_checker=None
         )
 
     if use_ip:
-        pipe.load_ip_adapter("h94/IP-Adapter", subfolder="models", weight_name=ip_adapter_name)
+        pipe.load_ip_adapter(ip_config["repo"], subfolder=ip_config["subfolder"], weight_name=ip_adapter_name)
 
     pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
     pipe.load_lora_weights(lcm_lora_id)
@@ -651,7 +676,7 @@ def load_models_multiple_cn(model_id="Lykon/dreamshaper-8", use_ip=True):
     return infer
 
 
-def load_models_multiple_cn_hyper(model_id="Lykon/dreamshaper-8", use_ip=True):
+def load_models_multiple_cn_hyper(model_id=DEFAULT_MODEL, use_ip=True):
     from diffusers import ControlNetModel, TCDScheduler,DDIMScheduler, StableDiffusionControlNetPipeline
     from diffusers.utils import load_image
     from huggingface_hub import hf_hub_download
@@ -659,13 +684,17 @@ def load_models_multiple_cn_hyper(model_id="Lykon/dreamshaper-8", use_ip=True):
     if not is_mac:
         torch.backends.cuda.matmul.allow_tf32 = True
 
-    repo_name = "ByteDance/Hyper-SD"
-    ckpt_name = "Hyper-SD15-12steps-CFG-lora.safetensors"
-
-    ip_adapter_name = "ip-adapter_sd15.bin"
+    # 从配置获取 Hyper-SD 模型信息
+    accel_config = get_acceleration_config(hyper=True)
+    ip_config = get_ip_adapter_config()
+    
+    repo_name = accel_config["repo"]
+    ckpt_name = accel_config["weight"]
+    ip_adapter_name = ip_config["weight"]
+    
     controlnets = [
-        ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-scribble", torch_dtype=torch.float16),
-        ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-seg", torch_dtype=torch.float16)]
+        ControlNetModel.from_pretrained(get_controlnet_id("scribble"), torch_dtype=torch.float16),
+        ControlNetModel.from_pretrained(get_controlnet_id("segmentation"), torch_dtype=torch.float16)]
 
     if 'custom' in model_id:
         pipe = StableDiffusionControlNetPipeline.from_single_file(
@@ -674,7 +703,6 @@ def load_models_multiple_cn_hyper(model_id="Lykon/dreamshaper-8", use_ip=True):
             controlnet=controlnets,
             controlnet_conditioning_scale=[0.9, 0.9],
             torch_dtype=torch.float16,
-            variant="fp16",
             safety_checker=None
         )
     else:
@@ -684,12 +712,11 @@ def load_models_multiple_cn_hyper(model_id="Lykon/dreamshaper-8", use_ip=True):
             controlnet=controlnets,
             controlnet_conditioning_scale=[0.9, 0.9],
             torch_dtype=torch.float16,
-            variant="fp16",
             safety_checker=None
         )
 
     if use_ip:
-        pipe.load_ip_adapter("h94/IP-Adapter", subfolder="models", weight_name=ip_adapter_name)
+        pipe.load_ip_adapter(ip_config["repo"], subfolder=ip_config["subfolder"], weight_name=ip_adapter_name)
 
     pipe.scheduler = TCDScheduler.from_config(pipe.scheduler.config)
 
@@ -846,7 +873,7 @@ def tile_upscale(source_image, prompt, res):
 
     controlnet = ControlNetModel.from_pretrained('lllyasviel/control_v11f1e_sd15_tile',
                                                  torch_dtype=torch.float16)
-    pipe = DiffusionPipeline.from_pretrained("Lykon/dreamshaper-8",
+    pipe = DiffusionPipeline.from_pretrained(DEFAULT_MODEL,
                                              custom_pipeline="stable_diffusion_controlnet_img2img",
                                              controlnet=controlnet,
                                              torch_dtype=torch.float16,

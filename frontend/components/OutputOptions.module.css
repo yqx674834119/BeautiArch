@@ -222,13 +222,15 @@
 .uploadButtonMini {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
     background: var(--bg-panel);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     cursor: pointer;
     transition: all var(--transition-fast);
 }
@@ -239,28 +241,25 @@
     border-color: var(--accent-primary);
 }
 
-.uploadIconMini {
+.uploadArrow {
     font-size: 1rem;
+    font-weight: 600;
 }
 
 .refStatusMini {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     padding: 4px 8px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--accent-primary);
+    background: #d1fae5;
+    border: 1px solid #10b981;
     border-radius: var(--radius-sm);
 }
 
 .refStatusIcon {
-    font-size: 1rem;
-}
-
-.refStatusText {
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--text-primary);
+    font-size: 0.9rem;
+    color: #10b981;
+    font-weight: 700;
 }
 
 .clearRefButtonSimple {
@@ -416,6 +415,80 @@ input:checked+.slider:before {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Disabled state */
+.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.toggleSwitch.disabled {
+    pointer-events: none;
+}
+
+/* Upscale button main - initial state */
+.upscaleButtonMain {
+    background: var(--bg-panel);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    font-weight: 500;
+}
+
+.upscaleButtonMain:hover:not(:disabled) {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.upscaleButtonMain:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Upscale expanded panel */
+.upscaleExpanded {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--accent-primary);
+    animation: slideDown 0.2s ease-out;
+}
+
+.upscaleHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.upscaleTitle {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.upscaleCloseBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.upscaleCloseBtn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 .button {

@@ -18,18 +18,21 @@ interface OutputOptionsProps {
     prompt: string;
     customRefImage: string | null;
     liveUpdate: boolean;
-    upscale: boolean;            // New
-    upscaleResolution: number;   // New
+    upscale: boolean;
+    upscaleResolution: number;
     hideInputZone: boolean;
     floatingDraw: boolean;
     isGenerating: boolean;
+    isUpscaling: boolean;           // New: upscaling in progress
+    hasGeneratedImage: boolean;     // New: whether an image has been generated
     onTypeChange: (index: number) => void;
     onStyleChange: (index: number) => void;
     onPromptChange: (prompt: string) => void;
     onCustomRefImageChange: (image: string | null) => void;
     onLiveUpdateChange: (enabled: boolean) => void;
-    onUpscaleChange: (enabled: boolean) => void; // New
-    onUpscaleResolutionChange: (res: number) => void; // New
+    onUpscaleChange: (enabled: boolean) => void;
+    onUpscaleResolutionChange: (res: number) => void;
+    onUpscale: () => void;          // New: trigger upscale action
     onHideInputChange: (hidden: boolean) => void;
     onFloatingDrawChange: (enabled: boolean) => void;
     onUpdateOutput: () => void;
@@ -65,6 +68,8 @@ export default function OutputOptions({
     hideInputZone,
     floatingDraw,
     isGenerating,
+    isUpscaling,
+    hasGeneratedImage,
     onTypeChange,
     onStyleChange,
     onPromptChange,
@@ -72,6 +77,7 @@ export default function OutputOptions({
     onLiveUpdateChange,
     onUpscaleChange,
     onUpscaleResolutionChange,
+    onUpscale,
     onHideInputChange,
     onFloatingDrawChange,
     onUpdateOutput,
@@ -120,7 +126,7 @@ export default function OutputOptions({
             </div>
 
             {/* Style Header */}
-            <h3 className={styles.sectionTitle} style={{ marginTop: '16px' }}>Style</h3>
+            <h3 className={styles.sectionTitle}>Style</h3>
 
             {/* Clickable Style Preview Card */}
             <div className={styles.stylePreviewCard} onClick={() => setIsModalOpen(true)}>
@@ -186,15 +192,14 @@ export default function OutputOptions({
             {/* Style Reference (Single Line) */}
             <div className={styles.refRow}>
                 <div className={styles.refLabelGroup}>
-                    <label className={styles.sectionLabel} style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Style Reference</label>
+                    <label className={styles.sectionLabel} style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Reference</label>
                     <InfoButton tooltip={TOOLTIPS.styleRef} />
                 </div>
 
                 <div className={styles.refControl}>
                     {customRefImage ? (
                         <div className={styles.refStatusMini}>
-                            <span className={styles.refStatusIcon}>✅</span>
-                            <span className={styles.refStatusText}>Uploaded</span>
+                            <span className={styles.refStatusIcon}>✓</span>
                             <button
                                 className={styles.clearRefButtonSimple}
                                 onClick={(e) => {
@@ -211,8 +216,7 @@ export default function OutputOptions({
                             className={styles.uploadButtonMini}
                             onClick={() => refImageInputRef.current?.click()}
                         >
-                            <span className={styles.uploadIconMini}>📷</span>
-                            <span>Upload</span>
+                            <span className={styles.uploadArrow}>↑</span>
                         </button>
                     )}
                 </div>
@@ -256,25 +260,32 @@ export default function OutputOptions({
                 </label>
             </div>
 
-            {/* Upscaling Section */}
+            {/* Upscaling Section - Button Style */}
             <div className={styles.upscaleSection}>
-                <div className={styles.upscaleRow}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className={styles.toggleLabel}>Upscaling</span>
-                        <InfoButton tooltip={TOOLTIPS.upscale} />
-                    </div>
-                    <label className={styles.toggleSwitch}>
-                        <input
-                            type="checkbox"
-                            checked={upscale}
-                            onChange={(e) => onUpscaleChange(e.target.checked)}
-                        />
-                        <span className={styles.slider}></span>
-                    </label>
-                </div>
-
-                {upscale && (
-                    <div className={styles.upscaleParams}>
+                {!upscale ? (
+                    <button
+                        className={`${styles.button} ${styles.upscaleButtonMain}`}
+                        onClick={() => onUpscaleChange(true)}
+                        disabled={!hasGeneratedImage || isUpscaling}
+                        title={hasGeneratedImage ? 'Upscale the generated image' : 'Generate an image first'}
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Upscale
+                    </button>
+                ) : (
+                    <div className={styles.upscaleExpanded}>
+                        <div className={styles.upscaleHeader}>
+                            <span className={styles.upscaleTitle}>Upscale Settings</span>
+                            <button
+                                className={styles.upscaleCloseBtn}
+                                onClick={() => onUpscaleChange(false)}
+                                title="Cancel"
+                            >
+                                ✕
+                            </button>
+                        </div>
                         <div className={styles.rangeGroup}>
                             <div className={styles.rangeHeader}>
                                 <span>Resolution</span>
@@ -290,6 +301,20 @@ export default function OutputOptions({
                                 onChange={(e) => onUpscaleResolutionChange(Number(e.target.value))}
                             />
                         </div>
+                        <button
+                            className={`${styles.button} ${styles.primary}`}
+                            onClick={onUpscale}
+                            disabled={isUpscaling}
+                        >
+                            {isUpscaling ? (
+                                <>
+                                    <span className={styles.spinner} />
+                                    Upscaling...
+                                </>
+                            ) : (
+                                'Upscale Now'
+                            )}
+                        </button>
                     </div>
                 )}
             </div>

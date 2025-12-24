@@ -93,9 +93,11 @@ export default function Home() {
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [canvasData, setCanvasData] = useState<{ lineImage: string; colorImage: string } | null>(null);
   const [customRefImage, setCustomRefImage] = useState<string | null>(null);
-  // Upscale state
+  // Upscale state - only available after image is generated
   const [upscale, setUpscale] = useState(false);
   const [upscaleResolution, setUpscaleResolution] = useState(2048);
+  const [isUpscaling, setIsUpscaling] = useState(false);
+  const [originalImage, setOriginalImage] = useState<string | null>(null); // Store original before upscale
 
   // Refs - using proper typed ref
   const drawingCanvasRef = useRef<DrawingCanvasHandle>(null);
@@ -211,6 +213,9 @@ export default function Home() {
 
     setIsGenerating(true);
     setStatusMessage('Generating...');
+    // Reset upscale state on new generation
+    setUpscale(false);
+    setOriginalImage(null);
 
     try {
       const params: GenerateParams = {
@@ -230,35 +235,43 @@ export default function Home() {
         seed: editorState.seed,
       };
 
-      // 1. Generate base image
       const result = await api.generate(params);
-      let finalImage = result.image;
-
-      // 2. Upscale if enabled
-      if (upscale) {
-        setStatusMessage('Upscaling...');
-        try {
-          const upscaleResult = await api.upscale(
-            finalImage,
-            editorState.prompt,
-            upscaleResolution
-          );
-          finalImage = upscaleResult.image;
-        } catch (error) {
-          console.error('Upscaling failed:', error);
-          setStatusMessage('Upscaling failed - showing original');
-        }
-      }
-
-      setResultImage(finalImage);
-      setStatusMessage(`Generated in ${result.inferenceTime.toFixed(2)}s`);
+      setResultImage(result.image);
+      setOriginalImage(result.image); // Store for potential upscaling
+      setStatusMessage(`Generated in ${result.inferenceTime?.toFixed(2) || '?'}s`);
     } catch (error) {
       console.error('Generation failed:', error);
       setStatusMessage('Generation failed - check backend connection');
     } finally {
       setIsGenerating(false);
     }
-  }, [canvasData, editorState]);
+  }, [canvasData, editorState, customRefImage]);
+
+  // Upscale image - separate action after generation
+  const handleUpscale = useCallback(async () => {
+    if (!originalImage) {
+      setStatusMessage('Generate an image first');
+      return;
+    }
+
+    setIsUpscaling(true);
+    setStatusMessage('Upscaling...');
+
+    try {
+      const upscaleResult = await api.upscale(
+        originalImage,
+        editorState.prompt,
+        upscaleResolution
+      );
+      setResultImage(upscaleResult.image);
+      setStatusMessage(`Upscaled to ${upscaleResolution}px`);
+    } catch (error) {
+      console.error('Upscaling failed:', error);
+      setStatusMessage('Upscaling failed');
+    } finally {
+      setIsUpscaling(false);
+    }
+  }, [originalImage, editorState.prompt, upscaleResolution]);
 
   // Export image
   const handleExport = useCallback(() => {
@@ -505,6 +518,8 @@ export default function Home() {
           hideInputZone={hideInputZone}
           floatingDraw={floatingDraw}
           isGenerating={isGenerating}
+          isUpscaling={isUpscaling}
+          hasGeneratedImage={!!originalImage}
           onTypeChange={handleTypeChange}
           onStyleChange={handleStyleChange}
           onPromptChange={(val) => setEditorState((prev) => ({ ...prev, prompt: val }))}
@@ -512,11 +527,13 @@ export default function Home() {
           onLiveUpdateChange={(val) => setEditorState((prev) => ({ ...prev, liveUpdate: val }))}
           onUpscaleChange={setUpscale}
           onUpscaleResolutionChange={setUpscaleResolution}
+          onUpscale={handleUpscale}
           onHideInputChange={setHideInputZone}
           onFloatingDrawChange={setFloatingDraw}
           onUpdateOutput={handleGenerate}
         />
 
+        {/* TEMPORARILY HIDDEN - Advanced Options not needed for now
         {!isSimpleMode && (
           <AdvancedOptions
             seed={editorState.seed}
@@ -545,6 +562,19 @@ export default function Home() {
             onLineProcessingChange={setLineMethod}
           />
         )}
+        */}
+
+        {/* Logo Section */}
+        <div className={styles.logoSection}>
+          <div className={styles.logoDivider} />
+          <div className={styles.logoWrapper}>
+            <img
+              src="/Logo.png"
+              alt="LivableCityLAB"
+              className={styles.logo}
+            />
+          </div>
+        </div>
       </aside>
 
 

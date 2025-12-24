@@ -91,6 +91,36 @@
   max-height: 100vh;
 }
 
+/* Logo Section at bottom of right panel */
+.logoSection {
+  margin-top: auto;
+  padding-top: var(--spacing-md);
+}
+
+.logoDivider {
+  height: 1px;
+  background: var(--border-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.logoWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-sm) 0;
+}
+
+.logo {
+  max-width: 85%;
+  height: auto;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.logo:hover {
+  opacity: 1;
+}
+
 .statusBar {
   grid-column: 1 / -1;
   display: flex;
