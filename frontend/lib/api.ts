@@ -234,8 +234,14 @@ export class GenerationWebSocket {
     }
 
     private connect() {
-        // Use ws://localhost:8000 for WebSocket
-        const wsUrl = 'ws://localhost:8000/api/generate/ws';
+        // 生产环境使用相对路径，开发环境使用 localhost
+        const wsProtocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsHost = typeof window !== 'undefined' ? window.location.host : 'localhost:5050';
+        const basePath = '/SkeletonSkin';
+        const wsUrl = process.env.NODE_ENV === 'production'
+            ? `${wsProtocol}//${wsHost}${basePath}/api/generate/ws`
+            : 'ws://localhost:5050/api/generate/ws';
+
 
         this.ws = new WebSocket(wsUrl);
 
