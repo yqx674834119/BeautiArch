@@ -11,12 +11,18 @@ const nextConfig: NextConfig = {
 
   // 开发环境 API 重写（生产环境通过 Nginx 代理）
   async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:5050/api/:path*',
-      },
-    ];
+    return {
+      // beforeFiles rewrites 在 basePath 应用之前运行
+      beforeFiles: [
+        {
+          // 匹配 /SkeletonSkin/api/* 请求，转发到后端
+          source: '/SkeletonSkin/api/:path*',
+          destination: 'http://localhost:5050/api/:path*',
+        },
+      ],
+      afterFiles: [],
+      fallback: [],
+    };
   },
 };
 
