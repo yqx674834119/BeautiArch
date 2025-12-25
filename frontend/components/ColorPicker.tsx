@@ -97,7 +97,7 @@ export default function ColorPicker({
                         >
                             <div className={styles.iconWrapper}>
                                 <Image
-                                    src={`/SkeletonSkin/icons/cat_${option.name}.png`}
+                                    src={`/icons/cat_${option.name}.png`}
                                     alt={option.name}
                                     width={40}
                                     height={40}

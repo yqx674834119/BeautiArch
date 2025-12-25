@@ -72,7 +72,7 @@ export default function BrushSizeControl({
             <div className={styles.dotsSection}>
                 <div className={styles.toolIcon}>
                     <Image
-                        src={`/SkeletonSkin/icons/${TOOL_ICONS[currentTool] || 'pencil.png'}`}
+                        src={`/icons/${TOOL_ICONS[currentTool] || 'pencil.png'}`}
                         alt={currentTool}
                         width={20}
                         height={20}

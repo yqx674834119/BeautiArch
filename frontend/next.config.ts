@@ -5,25 +5,8 @@ const nextConfig: NextConfig = {
   basePath: '/SkeletonSkin',
 
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'livablecitylab.hkust-gz.edu.cn',
-        pathname: '/SkeletonSkin/static/**',
-      },
-      {
-        protocol: 'http',
-        hostname: '10.30.58.75',
-        port: '5050',
-        pathname: '/static/**',
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '5050',
-        pathname: '/static/**',
-      },
-    ],
+    // 禁用图片优化以避免路径问题 - 适用于部署到子目录
+    unoptimized: true,
   },
 
   // 开发环境 API 重写（生产环境通过 Nginx 代理）
