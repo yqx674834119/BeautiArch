@@ -13,9 +13,10 @@ import type {
     WSMessage,
 } from './types';
 
-// API base URL - use relative path to leverage Next.js rewrites
-// In production, set NEXT_PUBLIC_API_URL to the actual API server
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+// API base URL - 生产环境需要包含 basePath
+// 注意：Next.js 的 basePath 不会自动应用到 fetch 请求
+const BASE_PATH = '/SkeletonSkin';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || BASE_PATH;
 
 /**
  * Make an API request

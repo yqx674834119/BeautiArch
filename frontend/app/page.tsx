@@ -652,7 +652,7 @@ export default function Home() {
             <div className={styles.logoDivider} />
             <div className={styles.logoWrapper}>
               <img
-                src="/Logo.png"
+                src="/SkeletonSkin/Logo.png"
                 alt="LivableCityLAB"
                 className={styles.logo}
               />

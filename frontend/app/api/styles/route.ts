@@ -80,7 +80,7 @@ export async function GET() {
                 styles.push({
                     name: styleName,
                     prompt: prompt,
-                    imageUrl: `/styles/${folderName}/${file}`,
+                    imageUrl: `/SkeletonSkin/styles/${folderName}/${file}`,
                 });
             }
 

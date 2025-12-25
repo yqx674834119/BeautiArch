@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ScribbleArchitect - Transform Doodles into Architecture",
+  title: "Skeleton+Skin",
   description: "AI-powered architectural sketch generation from simple drawings",
 };
 

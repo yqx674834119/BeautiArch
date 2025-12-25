@@ -71,7 +71,7 @@ export default function ViewerToolbar({
                         {/* Tool icon */}
                         <div className={styles.toolIcon}>
                             <Image
-                                src={`/icons/${TOOL_ICONS[currentTool] || 'pencil.png'}`}
+                                src={`/SkeletonSkin/icons/${TOOL_ICONS[currentTool] || 'pencil.png'}`}
                                 alt={currentTool}
                                 width={18}
                                 height={18}
