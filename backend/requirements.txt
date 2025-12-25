@@ -21,3 +21,6 @@ diffusers
 transformers
 accelerate
 scipy
+
+# HuggingFace line detection preprocessors
+controlnet_aux>=0.0.7

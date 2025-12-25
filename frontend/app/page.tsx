@@ -93,7 +93,7 @@ export default function Home() {
   // Import modal state
   const [showImportModal, setShowImportModal] = useState(false);
   const [pendingImportImage, setPendingImportImage] = useState<string | null>(null);
-  const [lineMethod, setLineMethod] = useState(0);
+  const [lineMethod, setLineMethod] = useState(9); // Default to PiDiNet (AI)
   const [isProcessingImport, setIsProcessingImport] = useState(false);
 
   // Data state

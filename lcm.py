@@ -356,7 +356,7 @@ def screen_to_lines(image, option):
         processed_image = 255 - edges
 
     elif option == 5:
-        edge_detector = cv2.ximgproc.createStructuredEdgeDetection('models/edge_model.yml')
+        edge_detector = cv2.ximgproc.createStructuredEdgeDetection('/home/livablecity/BeautiArch/models/edge_model.yml')
         # detect the edges
         print(image.dtype, image.shape)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

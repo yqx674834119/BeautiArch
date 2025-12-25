@@ -50,12 +50,11 @@ const IMPORT_MODES = [
 ];
 
 const LINE_METHODS = [
-    'Sobel Custom',
-    'Canny',
-    'Canny + L2',
-    'Canny + BIL',
-    'Canny + Blur',
-    'RF Custom',
+    { id: 0, name: 'Sobel Custom' },
+    { id: 2, name: 'Canny + L2' },
+    { id: 6, name: 'HED (AI)' },
+    { id: 7, name: 'Lineart (AI)' },
+    { id: 9, name: 'PiDiNet (AI)' },
 ];
 
 export default function ImageImportModal({
@@ -117,9 +116,9 @@ export default function ImageImportModal({
                             value={selectedMethod}
                             onChange={(e) => handleMethodChange(Number(e.target.value))}
                         >
-                            {LINE_METHODS.map((method, idx) => (
-                                <option key={method} value={idx}>
-                                    {method}
+                            {LINE_METHODS.map((method) => (
+                                <option key={method.id} value={method.id}>
+                                    {method.name}
                                 </option>
                             ))}
                         </select>

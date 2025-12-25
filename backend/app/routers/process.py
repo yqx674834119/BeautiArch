@@ -89,24 +89,37 @@ async def process_lines(request: ProcessLinesRequest):
     - 3: Canny + BIL
     - 4: Canny + Blur
     - 5: RF Custom
+    - 6: HED (HuggingFace)
+    - 7: Lineart (HuggingFace)
+    - 8: Lineart Coarse (HuggingFace)
+    - 9: PiDiNet (HuggingFace)
     """
     try:
-        lcm = get_lcm()
-        
         # Convert base64 to CV2 image
         cv2_image = base64_to_cv2(request.image)
         
         if cv2_image is None:
             raise HTTPException(status_code=400, detail="Invalid image data")
         
-        # Process using lcm.screen_to_lines
-        processed = lcm.screen_to_lines(cv2_image, request.method)
+        # Method names mapping
+        method_names = {
+            0: 'Sobel Custom', 1: 'Canny', 2: 'Canny + L2', 
+            3: 'Canny + BIL', 4: 'Canny + Blur', 5: 'RF Custom',
+            6: 'HED', 7: 'Lineart', 8: 'Lineart Coarse', 9: 'PiDiNet'
+        }
+        
+        # Use HuggingFace detectors for methods 6-9
+        if request.method >= 6:
+            from app.services.hf_line_detectors import process_with_hf_detector
+            processed = process_with_hf_detector(cv2_image, request.method)
+        else:
+            # Use original lcm methods for 0-5
+            lcm = get_lcm()
+            processed = lcm.screen_to_lines(cv2_image, request.method)
         
         # Convert back to base64
         result_base64 = cv2_to_base64(processed)
-        
-        method_names = ['Sobel Custom', 'Canny', 'Canny + L2', 'Canny + BIL', 'Canny + Blur', 'RF Custom']
-        method_name = method_names[request.method] if request.method < len(method_names) else 'Unknown'
+        method_name = method_names.get(request.method, 'Unknown')
         
         return ProcessResponse(
             image=result_base64,
@@ -156,10 +169,10 @@ async def get_line_methods():
     return {
         "methods": [
             {"id": 0, "name": "Sobel Custom"},
-            {"id": 1, "name": "Canny"},
             {"id": 2, "name": "Canny + L2"},
-            {"id": 3, "name": "Canny + BIL"},
-            {"id": 4, "name": "Canny + Blur"},
-            {"id": 5, "name": "RF Custom"},
+            {"id": 6, "name": "HED (AI)"},
+            {"id": 7, "name": "Lineart (AI)"},
+            {"id": 9, "name": "PiDiNet (AI)"},
         ]
     }
+
