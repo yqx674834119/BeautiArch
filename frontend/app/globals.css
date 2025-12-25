@@ -75,6 +75,11 @@
   /* Toolbar width - responsive */
   --toolbar-width: 72px;
   --panel-width: 300px;
+
+  /* Mobile dimensions */
+  --mobile-header-height: 56px;
+  --mobile-top-toolbar-height: 48px;
+  --mobile-bottom-bar-height: 180px;
 }
 
 * {

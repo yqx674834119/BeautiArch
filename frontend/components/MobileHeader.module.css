@@ -1,0 +1,54 @@
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--mobile-header-height, 56px);
+    padding: 0 var(--spacing-md);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.menuButton,
+.cameraButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: var(--radius-lg);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.menuButton:active,
+.cameraButton:active {
+    background: var(--bg-hover);
+}
+
+.cameraButton {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-full);
+}
+
+.cameraButton:active {
+    background: var(--bg-tertiary);
+}
+
+.title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.01em;
+}

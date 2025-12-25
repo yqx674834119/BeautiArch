@@ -57,6 +57,7 @@
     justify-content: space-between;
     padding: 16px 24px;
     border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .title {
@@ -86,12 +87,51 @@
     color: white;
 }
 
+/* Category Switcher */
+.categorySwitcher {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-left: var(--spacing-lg);
+}
+
+.categoryBtn {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.categoryBtn:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+.categoryBtn.active {
+    background: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.categoryBtn.active.interior {
+    background: var(--accent-purple);
+    border-color: var(--accent-purple);
+}
+
 /* Type Tabs Wrapper with arrows */
 .typeTabsWrapper {
     position: relative;
     display: flex;
     align-items: center;
     border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .navArrow {
@@ -178,27 +218,29 @@
     background: rgba(39, 87, 211, 0.1);
 }
 
-/* Style Grid */
+/* Style Grid - Desktop default: fixed size cards */
 .styleGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, 150px);
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, 120px);
+    gap: 16px;
     padding: 24px;
     overflow-y: auto;
     flex: 1;
     justify-content: center;
 }
 
+/* Style Card */
 .styleCard {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    gap: 8px;
     cursor: pointer;
     transition: all 0.15s ease;
     border-radius: var(--radius-md);
-    padding: 8px;
+    padding: 6px;
     background: transparent;
-    width: 150px;
+    width: 120px;
 }
 
 .styleCard:hover {
@@ -215,15 +257,17 @@
     box-shadow: 0 0 0 3px rgba(39, 87, 211, 0.2);
 }
 
+/* Image Wrapper - Fixed square size */
 .imageWrapper {
     position: relative;
-    width: 134px;
-    height: 134px;
+    width: 108px;
+    height: 108px;
     border-radius: var(--radius-md);
     overflow: hidden;
     background: var(--bg-secondary);
     transition: all 0.2s ease;
     border: 1px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .styleImage {
@@ -235,81 +279,168 @@
     object-fit: cover;
 }
 
+/* Style Name */
 .styleName {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    line-height: 1.2;
     color: var(--text-primary);
     text-align: center;
     font-weight: 500;
-    white-space: nowrap;
+    width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-/* Responsive */
+/* Apply Button - shows on mobile */
+.applyButton {
+    display: none;
+}
+
+/* ===== MOBILE STYLES ===== */
 @media (max-width: 768px) {
+    .overlay {
+        align-items: flex-end;
+    }
+
     .modal {
-        width: 95%;
-        max-height: 85vh;
+        width: 100%;
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(100%);
+        }
+
+        to {
+            transform: translateY(0);
+        }
+    }
+
+    .header {
+        padding: 12px 16px;
+    }
+
+    .title {
+        font-size: 1rem;
+    }
+
+    .closeButton {
+        width: 32px;
+        height: 32px;
+    }
+
+    .categorySwitcher {
+        margin-left: var(--spacing-sm);
+    }
+
+    .categoryBtn {
+        padding: 5px 10px;
+        font-size: 0.65rem;
+    }
+
+    .typeTabsWrapper {
+        border-bottom: 1px solid var(--border-color);
     }
 
     .typeTabs {
-        padding: 12px 40px;
+        padding: 8px 32px;
+        gap: 4px;
     }
 
+    .typeLabel {
+        font-size: 0.75rem;
+        margin-right: 6px;
+    }
+
+    .typeTab {
+        padding: 5px 10px;
+        font-size: 0.75rem;
+    }
+
+    /* Mobile Grid: 3 columns with fixed size */
     .styleGrid {
-        grid-template-columns: repeat(auto-fill, 120px);
-        gap: 12px;
-        padding: 16px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding: 12px;
+        padding-bottom: 90px;
+        justify-content: stretch;
     }
 
     .styleCard {
-        width: 120px;
+        width: 100%;
+        padding: 4px;
+        gap: 6px;
+    }
+
+    /* Mobile: Use aspect ratio for responsive squares */
+    .imageWrapper {
+        width: 100%;
+        height: 0;
+        padding-bottom: 100%;
+    }
+
+    .styleName {
+        font-size: 0.65rem;
+        padding: 0 2px;
+    }
+
+    /* Apply Button */
+    .applyButton {
+        display: block;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 12px 16px;
+        padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-top: 1px solid var(--border-color);
+        z-index: 10;
+    }
+
+    .applyBtn {
+        width: 100%;
+        padding: 14px 24px;
+        border: none;
+        border-radius: var(--radius-lg);
+        background: var(--accent-primary);
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .applyBtn:active {
+        background: var(--accent-highlight);
+        transform: scale(0.98);
+    }
+}
+
+/* ===== LARGE DESKTOP ===== */
+@media (min-width: 1200px) {
+    .styleGrid {
+        grid-template-columns: repeat(auto-fill, 140px);
+        gap: 20px;
+    }
+
+    .styleCard {
+        width: 140px;
     }
 
     .imageWrapper {
-        width: 104px;
-        height: 104px;
+        width: 128px;
+        height: 128px;
     }
-}
 
-@media (min-width: 1200px) {
-    .styleGrid {
-        grid-template-columns: repeat(5, 150px);
+    .styleName {
+        font-size: 0.75rem;
     }
-}/* Category Switcher */
-.categorySwitcher {
-    display: flex;
-    gap: var(--spacing-sm);
-    margin-left: var(--spacing-lg);
-}
-
-.categoryBtn {
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border: 1px solid var(--border-color);
-    background: transparent;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.categoryBtn:hover {
-    color: var(--text-primary);
-    background: var(--bg-hover);
-}
-
-.categoryBtn.active {
-    background: var(--accent-primary);
-    color: white;
-    border-color: var(--accent-primary);
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
-}
-
-.categoryBtn.active.interior {
-    background: var(--accent-purple); /* specific color for Interior if needed, or keeping unified */
-    border-color: var(--accent-purple);
 }

@@ -198,6 +198,16 @@ export default function StyleSelectorModal({
                         </div>
                     ))}
                 </div>
+
+                {/* Apply Button - shows on mobile */}
+                <div className={styles.applyButton}>
+                    <button
+                        className={styles.applyBtn}
+                        onClick={onClose}
+                    >
+                        Apply
+                    </button>
+                </div>
             </div>
         </div>
     );

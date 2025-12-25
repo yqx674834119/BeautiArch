@@ -16,6 +16,10 @@ import ColorPicker from '@/components/ColorPicker';
 import ImageImportModal, { type ImportMode } from '@/components/ImageImportModal';
 import ViewerToolbar from '@/components/ViewerToolbar';
 import CurtainDivider from '@/components/CurtainDivider';
+import MobileHeader from '@/components/MobileHeader';
+import MobileBottomBar from '@/components/MobileBottomBar';
+import MobileTopToolbar from '@/components/MobileTopToolbar';
+import StyleSelectorModal from '@/components/StyleSelectorModal';
 import type { DrawingTool, TypeInfo, GenerateParams, EditorState } from '@/lib/types';
 import * as api from '@/lib/api';
 
@@ -67,6 +71,11 @@ export default function Home() {
   // SSR safety
   const [isMounted, setIsMounted] = useState(false);
 
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showStyleSelector, setShowStyleSelector] = useState(false);
+
   // UI state
   const [currentTool, setCurrentTool] = useState<DrawingTool>('pencil');
   const [brushColor, setBrushColor] = useState('#784131');
@@ -102,10 +111,20 @@ export default function Home() {
   // Refs - using proper typed ref
   const drawingCanvasRef = useRef<DrawingCanvasHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const refImageInputRef = useRef<HTMLInputElement>(null);
+  const canvasDataRef = useRef<{ lineImage: string; colorImage: string } | null>(null);
 
-  // SSR safety
+  // SSR safety + mobile detection
   useEffect(() => {
     setIsMounted(true);
+
+    // Mobile detection
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Load types from API (dynamically reads from public/styles folder)
@@ -197,16 +216,53 @@ export default function Home() {
 
   // Handle canvas change
   const handleCanvasChange = useCallback((lineImage: string, colorImage: string) => {
-    setCanvasData({ lineImage, colorImage });
+    const newData = { lineImage, colorImage };
+    setCanvasData(newData);
+    canvasDataRef.current = newData; // Keep ref in sync for Live Update
   }, []);
 
-  // Handle drawing end
+  // Handle drawing end - Live Update
   const handleDrawingEnd = useCallback(() => {
-    if (editorState.liveUpdate && canvasData) {
-      handleGenerate();
+    if (editorState.liveUpdate && canvasDataRef.current) {
+      // Use ref to get latest canvas data and trigger generation
+      const currentData = canvasDataRef.current;
+
+      // Trigger generation with current data
+      setIsGenerating(true);
+      setStatusMessage('Live generating...');
+
+      const params = {
+        lineImage: currentData.lineImage,
+        colorImage: currentData.colorImage,
+        prompt: editorState.prompt,
+        negativePrompt: editorState.negativePrompt,
+        typeIndex: editorState.typeIndex,
+        styleIndex: editorState.styleIndex,
+        customRefImage: customRefImage || undefined,
+        steps: editorState.steps,
+        cfg: editorState.cfg,
+        ipStrength: editorState.ipStrength,
+        cnStrengthLine: editorState.cnStrengthLine,
+        cnStrengthSeg: editorState.cnStrengthSeg,
+        eta: editorState.eta,
+        seed: editorState.seed,
+      };
+
+      api.generate(params)
+        .then((result) => {
+          setResultImage(result.image);
+          setOriginalImage(result.image);
+          setStatusMessage(`Generated in ${result.inferenceTime?.toFixed(2) || '?'}s`);
+        })
+        .catch((error) => {
+          console.error('Live generation failed:', error);
+          setStatusMessage('Generation failed');
+        })
+        .finally(() => {
+          setIsGenerating(false);
+        });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorState.liveUpdate, canvasData]);
+  }, [editorState, customRefImage]);
 
   // Generate image
   const handleGenerate = useCallback(async () => {
@@ -294,6 +350,26 @@ export default function Home() {
   // Import image
   const handleImportImage = useCallback(() => {
     fileInputRef.current?.click();
+  }, []);
+
+  // Import reference image (for style reference)
+  const handleImportRefImage = useCallback(() => {
+    refImageInputRef.current?.click();
+  }, []);
+
+  // Handle reference image file selection
+  const handleRefImageFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      setCustomRefImage(dataUrl);
+      setStatusMessage('Reference image set');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
   }, []);
 
   // Handle file selection
@@ -412,34 +488,67 @@ export default function Home() {
   }
 
   return (
-    <div className={styles.container}>
-      {/* Left Toolbar */}
-      <Toolbar
-        currentTool={currentTool}
-        brushColor={brushColor}
-        onToolChange={handleToolChange}
-        onColorPalette={handleColorPalette}
-        onImportImage={handleImportImage}
-        onExport={handleExport}
-        onReset={handleReset}
-      />
+    <div className={`${styles.container} ${isMobile ? styles.mobileLayout : ''}`}>
+      {/* Mobile Header - only on mobile */}
+      {isMobile && (
+        <MobileHeader
+          onMenuOpen={() => setShowMobileMenu(true)}
+          onImportImage={handleImportImage}
+        />
+      )}
+
+      {/* Left Toolbar - hidden on mobile */}
+      {!isMobile && (
+        <Toolbar
+          currentTool={currentTool}
+          brushColor={brushColor}
+          onToolChange={handleToolChange}
+          onColorPalette={handleColorPalette}
+          onImportImage={handleImportImage}
+          onExport={handleExport}
+          onReset={handleReset}
+        />
+      )}
+
+      {/* Mobile Top Toolbar - below header on mobile */}
+      {isMobile && (
+        <MobileTopToolbar
+          currentTool={currentTool}
+          brushSize={brushSize}
+          brushColor={brushColor}
+          onBrushSizeChange={setBrushSize}
+          viewerLayout={viewerLayout}
+          onLayoutChange={setViewerLayout}
+          onGenerate={handleGenerate}
+          isGenerating={isGenerating}
+        />
+      )}
 
       {/* Main Canvas Area */}
       <main className={styles.main}>
-        {/* Floating Viewer Toolbar */}
-        <div className={styles.viewerToolbar}>
-          <ViewerToolbar
-            currentTool={currentTool}
-            brushSize={brushSize}
-            brushColor={brushColor}
-            onBrushSizeChange={setBrushSize}
-            onColorPalette={handleColorPalette}
-            viewerLayout={viewerLayout}
-            onLayoutChange={setViewerLayout}
-            onGenerate={handleGenerate}
-            isGenerating={isGenerating}
-          />
-        </div>
+        {/* Floating Viewer Toolbar - show on desktop or mobile top section */}
+        {!isMobile && (
+          <div className={styles.viewerToolbar}>
+            <ViewerToolbar
+              currentTool={currentTool}
+              brushSize={brushSize}
+              brushColor={brushColor}
+              onBrushSizeChange={setBrushSize}
+              onColorPalette={handleColorPalette}
+              viewerLayout={viewerLayout}
+              onLayoutChange={setViewerLayout}
+              onGenerate={handleGenerate}
+              isGenerating={isGenerating}
+            />
+          </div>
+        )}
+
+        {/* Mobile Floating Tool Badge */}
+        {isMobile && (
+          <div className={styles.floatingToolBadge}>
+            <span>{currentTool} • {brushSize}px</span>
+          </div>
+        )}
 
         <div className={`${styles.canvasArea} ${viewerLayout === 'split' ? styles.splitMode : styles.curtainMode}`}>
           {/* Drawing Canvas - always rendered */}
@@ -508,95 +617,101 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Right Panel */}
-      <aside className={styles.rightPanel}>
-        <OutputOptions
+      {/* Right Panel - hidden on mobile */}
+      {!isMobile && (
+        <aside className={styles.rightPanel}>
+          <OutputOptions
+            types={types}
+            selectedType={editorState.typeIndex}
+            selectedStyle={editorState.styleIndex}
+            prompt={editorState.prompt}
+            customRefImage={customRefImage}
+            liveUpdate={editorState.liveUpdate}
+            upscale={upscale}
+            upscaleResolution={upscaleResolution}
+            hideInputZone={hideInputZone}
+            floatingDraw={floatingDraw}
+            isGenerating={isGenerating}
+            isUpscaling={isUpscaling}
+            hasGeneratedImage={!!originalImage}
+            onTypeChange={handleTypeChange}
+            onStyleChange={handleStyleChange}
+            onPromptChange={(val) => setEditorState((prev) => ({ ...prev, prompt: val }))}
+            onCustomRefImageChange={setCustomRefImage}
+            onLiveUpdateChange={(val) => setEditorState((prev) => ({ ...prev, liveUpdate: val }))}
+            onUpscaleChange={setUpscale}
+            onUpscaleResolutionChange={setUpscaleResolution}
+            onUpscale={handleUpscale}
+            onHideInputChange={setHideInputZone}
+            onFloatingDrawChange={setFloatingDraw}
+            onUpdateOutput={handleGenerate}
+          />
+
+          {/* Logo Section */}
+          <div className={styles.logoSection}>
+            <div className={styles.logoDivider} />
+            <div className={styles.logoWrapper}>
+              <img
+                src="/Logo.png"
+                alt="LivableCityLAB"
+                className={styles.logo}
+              />
+            </div>
+          </div>
+        </aside>
+      )}
+
+      {/* Mobile Bottom Bar - only on mobile */}
+      {isMobile && (
+        <MobileBottomBar
+          currentTool={currentTool}
+          onToolChange={handleToolChange}
+          prompt={editorState.prompt}
+          onPromptChange={(val) => setEditorState((prev) => ({ ...prev, prompt: val }))}
           types={types}
           selectedType={editorState.typeIndex}
           selectedStyle={editorState.styleIndex}
-          prompt={editorState.prompt}
-          customRefImage={customRefImage}
+          onOpenStyleSelector={() => setShowStyleSelector(true)}
           liveUpdate={editorState.liveUpdate}
-          upscale={upscale}
-          upscaleResolution={upscaleResolution}
-          hideInputZone={hideInputZone}
-          floatingDraw={floatingDraw}
-          isGenerating={isGenerating}
-          isUpscaling={isUpscaling}
-          hasGeneratedImage={!!originalImage}
-          onTypeChange={handleTypeChange}
-          onStyleChange={handleStyleChange}
-          onPromptChange={(val) => setEditorState((prev) => ({ ...prev, prompt: val }))}
-          onCustomRefImageChange={setCustomRefImage}
           onLiveUpdateChange={(val) => setEditorState((prev) => ({ ...prev, liveUpdate: val }))}
+          customRefImage={customRefImage}
+          onImportRefImage={handleImportRefImage}
+          upscale={upscale}
           onUpscaleChange={setUpscale}
-          onUpscaleResolutionChange={setUpscaleResolution}
-          onUpscale={handleUpscale}
-          onHideInputChange={setHideInputZone}
-          onFloatingDrawChange={setFloatingDraw}
-          onUpdateOutput={handleGenerate}
+          hasGeneratedImage={!!originalImage}
+          onReset={handleReset}
+          onImportImage={handleImportImage}
+          onExport={handleExport}
+          onColorPalette={handleColorPalette}
         />
+      )}
 
-        {/* TEMPORARILY HIDDEN - Advanced Options not needed for now
-        {!isSimpleMode && (
-          <AdvancedOptions
-            seed={editorState.seed}
-            prompt={editorState.prompt}
-            negativePrompt={editorState.negativePrompt}
-            useSimplePrompts={editorState.useSimplePrompts}
-            keepPrompt={editorState.keepPrompt}
-            onSeedChange={(val) => setEditorState((prev) => ({ ...prev, seed: val }))}
-            onPromptChange={(val) => setEditorState((prev) => ({ ...prev, prompt: val }))}
-            onNegativePromptChange={(val) => setEditorState((prev) => ({ ...prev, negativePrompt: val }))}
-            onUseSimplePromptsChange={(val) => setEditorState((prev) => ({ ...prev, useSimplePrompts: val }))}
-            onKeepPromptChange={(val) => setEditorState((prev) => ({ ...prev, keepPrompt: val }))}
-            steps={editorState.steps}
-            cfg={editorState.cfg}
-            ipStrength={editorState.ipStrength}
-            cnStrengthLine={editorState.cnStrengthLine}
-            cnStrengthSeg={editorState.cnStrengthSeg}
-            eta={editorState.eta}
-            onStepsChange={(val) => setEditorState((prev) => ({ ...prev, steps: val }))}
-            onCfgChange={(val) => setEditorState((prev) => ({ ...prev, cfg: val }))}
-            onIpStrengthChange={(val) => setEditorState((prev) => ({ ...prev, ipStrength: val }))}
-            onCnStrengthLineChange={(val) => setEditorState((prev) => ({ ...prev, cnStrengthLine: val }))}
-            onCnStrengthSegChange={(val) => setEditorState((prev) => ({ ...prev, cnStrengthSeg: val }))}
-            onEtaChange={(val) => setEditorState((prev) => ({ ...prev, eta: val }))}
-            lineProcessingType={lineMethod}
-            onLineProcessingChange={setLineMethod}
-          />
-        )}
-        */}
+      {/* Status Bar - hide on mobile */}
+      {!isMobile && (
+        <footer className={styles.statusBar}>
+          <span className={`${styles.connectionStatus} ${isConnected ? styles.connected : ''}`}>
+            {isConnected ? '● Connected' : '○ Disconnected'}
+          </span>
+          <span className={styles.statusMessage}>{statusMessage}</span>
+        </footer>
+      )}
 
-        {/* Logo Section */}
-        <div className={styles.logoSection}>
-          <div className={styles.logoDivider} />
-          <div className={styles.logoWrapper}>
-            <img
-              src="/Logo.png"
-              alt="LivableCityLAB"
-              className={styles.logo}
-            />
-          </div>
-        </div>
-      </aside>
-
-
-      {/* Status Bar */}
-      <footer className={styles.statusBar}>
-        <span className={`${styles.connectionStatus} ${isConnected ? styles.connected : ''}`}>
-          {isConnected ? '● Connected' : '○ Disconnected'}
-        </span>
-        <span className={styles.statusMessage}>{statusMessage}</span>
-      </footer>
-
-      {/* Hidden file input */}
+      {/* Hidden file input for canvas import */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
         style={{ display: 'none' }}
         onChange={handleFileChange}
+      />
+
+      {/* Hidden file input for reference image */}
+      <input
+        ref={refImageInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleRefImageFileChange}
       />
 
       {/* Color Picker Modal */}
@@ -621,6 +736,18 @@ export default function Home() {
             setShowImportModal(false);
             setPendingImportImage(null);
           }}
+        />
+      )}
+
+      {/* Style Selector Modal - for both desktop and mobile */}
+      {showStyleSelector && (
+        <StyleSelectorModal
+          types={types}
+          selectedType={editorState.typeIndex}
+          selectedStyle={editorState.styleIndex}
+          onTypeChange={handleTypeChange}
+          onStyleChange={handleStyleChange}
+          onClose={() => setShowStyleSelector(false)}
         />
       )}
     </div>
